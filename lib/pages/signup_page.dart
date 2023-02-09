@@ -1,6 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone/resources/auth_methods.dart';
 import 'package:instagram_clone/utils/colors.dart';
+import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/text_field_input.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -15,6 +20,14 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  Uint8List? _image;
+
+  void selectImage() async {
+    Uint8List im = await pickImage(ImageSource.gallery);
+    setState(() {
+      _image = im;
+    });
+  }
 
   @override
   void dispose() {
@@ -29,6 +42,8 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //to remove pixel overflow form keyboard
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -43,6 +58,30 @@ class _SignUpPageState extends State<SignUpPage> {
                 height: 64,
               ),
               const SizedBox(height: 64),
+              Stack(
+                children: [
+                  _image != null
+                      ? CircleAvatar(
+                          radius: 64,
+                          backgroundImage: MemoryImage(_image!),
+                        )
+                      : const CircleAvatar(
+                          radius: 64,
+                          backgroundImage: NetworkImage(
+                            'https://media.istockphoto.com/id/1316420668/vector/user-icon-human-person-symbol-social-profile-icon-avatar-login-sign-web-user-symbol.jpg?s=612x612&w=0&k=20&c=AhqW2ssX8EeI2IYFm6-ASQ7rfeBWfrFFV4E87SaFhJE=',
+                          ),
+                        ),
+                  Positioned(
+                    bottom: -10,
+                    left: 80,
+                    child: IconButton(
+                      onPressed: selectImage,
+                      icon: const Icon(Icons.add_a_photo),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
               TextFieldInput(
                 textEditingController: _usernameController,
                 hintText: 'Enter your Username',
@@ -69,7 +108,15 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const SizedBox(height: 24),
               InkWell(
-                onTap: () {},
+                onTap: () async {
+                  String res = await AuthMethods().signUpUser(
+                    email: _emailController.text,
+                    password: _passwordController.text,
+                    username: _usernameController.text,
+                    bio: _bioController.text,
+                  );
+                  print(res);
+                },
                 child: Container(
                   width: double.infinity,
                   alignment: Alignment.center,
@@ -82,7 +129,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     color: blueColor,
                   ),
-                  child: const Text('Log In'),
+                  child: const Text('Sign Up'),
                 ),
               ),
               const SizedBox(height: 24),
