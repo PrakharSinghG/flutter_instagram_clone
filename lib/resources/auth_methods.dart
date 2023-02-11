@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/resources/storage_methods.dart';
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -14,7 +15,7 @@ class AuthMethods {
     required String password,
     required String username,
     required String bio,
-    // required Uint8List file,
+    required Uint8List file,
   }) async {
     String res = "Some error occurred";
     try {
@@ -26,6 +27,9 @@ class AuthMethods {
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
             email: email, password: password);
 
+        String photoUrl = await StorageMethods()
+            .uploadImageToStorage('proflePics', file, false);
+
         //add user to our database
         await _firestore.collection('users').doc(cred.user!.uid).set({
           'username': username,
@@ -34,6 +38,7 @@ class AuthMethods {
           'uid': cred.user!.uid,
           'followers': [],
           'following': [],
+          'photoUrl' : photoUrl,
         });
 
         //method 2 to add user
